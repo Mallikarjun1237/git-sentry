@@ -1,0 +1,14 @@
+README.md
+agent.py
+cli.py
+config.py
+context.py
+pyproject.toml
+scanner.py
+snapshot.py
+git_sentry.egg-info/PKG-INFO
+git_sentry.egg-info/SOURCES.txt
+git_sentry.egg-info/dependency_links.txt
+git_sentry.egg-info/entry_points.txt
+git_sentry.egg-info/requires.txt
+git_sentry.egg-info/top_level.txt

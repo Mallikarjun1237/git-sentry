@@ -1,0 +1,2 @@
+[console_scripts]
+git-sentry = cli:app
