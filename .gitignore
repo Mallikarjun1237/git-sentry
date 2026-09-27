@@ -1,3 +1,10 @@
-
-README.md
 .env
+ __pycache__/*
+README.md
+
+test_secret.env
+
+__pycache__/
+*.egg-info/
+*.egg
+*.env

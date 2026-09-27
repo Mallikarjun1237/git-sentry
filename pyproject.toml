@@ -1,22 +1,24 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "git-sentry"
-version = "0.1.0"
-description = "Autonomous Blast-Radius Analyzer & Secret Quarantine for Git"
+version = "0.2.0"
+description = "Autonomous Pre-Flight Blast-Radius Analyzer, Secret Quarantine & Disaster-Recovery CLI for Git."
+authors = [{ name = "Git-Sentry Team" }]
+readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
     "typer>=0.9.0",
     "rich>=13.0.0",
-    "google-genai>=0.3.0",
-    "python-dotenv>=1.0.0",
     "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "google-genai>=0.1.1"
 ]
 
 [project.scripts]
 git-sentry = "cli:app"
 
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
-
 [tool.setuptools]
-py-modules = ["agent", "cli", "config", "context", "scanner", "snapshot"]
+py-modules = ["config", "context", "scanner", "snapshot", "hooks", "resolver", "agent", "cli"]
