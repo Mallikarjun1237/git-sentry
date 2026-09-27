@@ -1,9 +1,8 @@
 .env
- __pycache__/*
-README.md
-
+__pycache__/*
+.venv
 test_secret.env
-
+.egg-info/
 __pycache__/
 *.egg-info/
 *.egg
