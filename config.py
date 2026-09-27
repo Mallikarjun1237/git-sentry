@@ -167,8 +167,8 @@ def set_global_api_key(key: str):
 
 DEFAULT_MODEL = "gemini-3.8-flash"
 SUPPORTED_MODELS = [
-    "gemini-3.5-flash",
-    "gemini-3.5-pro",
+    "gemini-3.8-flash",
+    "gemini-3.8-pro",
 ]
 
 def get_selected_model() -> str:
