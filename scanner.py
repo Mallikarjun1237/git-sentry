@@ -163,6 +163,33 @@ from config import SECRET_PATTERNS, get_repo_root
 
 MAX_SCAN_FILE_SIZE_BYTES = 2 * 1024 * 1024
 
+import math
+
+def shannon_entropy(data: str) -> float:
+    """Calculate the Shannon entropy of a string to detect high-randomness tokens."""
+    if not data:
+        return 0.0
+    entropy = 0.0
+    for x in set(data):
+        p_x = float(data.count(x)) / len(data)
+        if p_x > 0:
+            entropy += - p_x * math.log2(p_x)
+    return entropy
+
+def find_high_entropy_strings(text: str, min_length: int = 16, threshold: float = 4.3) -> list[str]:
+    """Extract candidate high-entropy tokens from key-value assignment patterns."""
+    # Matches key/secret assignments capturing letters, numbers, and common token symbols
+    assignment_pattern = re.compile(
+        r'(?i)(?:key|token|secret|password|api|auth|cred)[^\n\r=:]*[:=]\s*["\']?([A-Za-z0-9_\-\.\$\+\/!#&~%*]{16,})["\']?'
+    )
+    detected = []
+    for match in assignment_pattern.finditer(text):
+        candidate = match.group(1).strip()
+        if len(candidate) >= min_length and shannon_entropy(candidate) >= threshold:
+            detected.append(candidate)
+    return detected
+
+
 def _run_git_cmd(args: list[str]) -> str:
     try:
         res = subprocess.run(
@@ -184,6 +211,7 @@ def scan_working_tree_for_secrets() -> list[dict]:
     raw_untracked = _run_git_cmd(["ls-files", "--others", "--exclude-standard"])
     untracked_files = [f.strip() for f in raw_untracked.splitlines() if f.strip()]
 
+    # 1. Scan staged and working tree diffs
     if diff_content:
         for name, pattern in SECRET_PATTERNS.items():
             for m in re.finditer(pattern, diff_content):
@@ -193,7 +221,14 @@ def scan_working_tree_for_secrets() -> list[dict]:
                     "sample": sample_text[:8] + "...",
                     "source": "Diff/Staged"
                 })
+        for token in find_high_entropy_strings(diff_content):
+            findings.append({
+                "type": "High-Entropy Secret / Token",
+                "sample": f"{token[:4]}...{token[-4:]}",
+                "source": "Diff/Staged"
+            })
 
+    # 2. Scan untracked files
     for file_path in untracked_files:
         path_obj = Path(file_path)
         if path_obj.is_file():
@@ -212,6 +247,13 @@ def scan_working_tree_for_secrets() -> list[dict]:
                         "source": file_path
                     })
                     break
+
+            for token in find_high_entropy_strings(content):
+                findings.append({
+                    "type": "High-Entropy Secret / Token",
+                    "sample": f"{token[:4]}...{token[-4:]}",
+                    "source": file_path
+                })
 
     return findings
 

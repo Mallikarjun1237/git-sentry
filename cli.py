@@ -194,26 +194,36 @@ def run(prompt: str):
         console.print("[bold red]Not a Git repository.[/bold red]")
         raise typer.Exit(1)
 
-    state = context.get_git_state()
-    secrets = scanner.scan_working_tree_for_secrets()
-    secrets_quarantined = True
+    secrets = []
+    state = {}
+    plan = None
 
-    if secrets:
-        console.print(Panel(
-            f"[bold yellow]Found {len(secrets)} potential secrets![/bold yellow]\n" +
-            "\n".join([f"- {s['type']} in {s['source']}" for s in secrets]),
-            title="SECURITY ALERT", border_style="red"
-        ))
-        if Confirm.ask("Quarantine these files (add to .gitignore)?"):
-            for s in secrets:
-                if s["source"] != "Diff/Staged":
-                    scanner.quarantine_file(s["source"])
-            console.print("[green]Files quarantined in .gitignore.[/green]")
-            secrets = scanner.scan_working_tree_for_secrets()
-        else:
-            secrets_quarantined = False
+    with console.status("[bold cyan][1/3] Reading Git tree and working state...[/bold cyan]") as status:
+        state = context.get_git_state()
 
-    with console.status("[bold blue]AI analyzing blast radius...[/bold blue]"):
+        status.update("[bold cyan][2/3] Scanning staging area and files for exposed credentials...[/bold cyan]")
+        secrets = scanner.scan_working_tree_for_secrets()
+
+        # Handle secret quarantine before model synthesis
+        secrets_quarantined = True
+        if secrets:
+            status.stop()
+            console.print(Panel(
+                f"[bold yellow]Found {len(secrets)} potential secrets![/bold yellow]\n" +
+                "\n".join([f"- {s['type']} in {s['source']}" for s in secrets]),
+                title="SECURITY ALERT", border_style="red"
+            ))
+            if Confirm.ask("Quarantine these files (add to .gitignore)?"):
+                for s in secrets:
+                    if s["source"] != "Diff/Staged":
+                        scanner.quarantine_file(s["source"])
+                console.print("[green]Files quarantined in .gitignore.[/green]")
+                secrets = scanner.scan_working_tree_for_secrets()
+            else:
+                secrets_quarantined = False
+            status.start()
+
+        status.update("[bold cyan][3/3] Synthesizing safety boundary with Gemini...[/bold cyan]")
         try:
             plan = agent.analyze_and_plan(prompt, state, secrets)
         except ServerError:
@@ -358,6 +368,16 @@ def install_hook():
     else:
         console.print(f"[bold red]✗ {msg}[/bold red]")
         raise typer.Exit(code=1)
+
+@app.command("install-alias")
+def install_alias():
+    """Register 'gs' as a fast global terminal shortcut for git-sentry."""
+    success, msg = hooks.install_shell_alias()
+    if success:
+        console.print(f"[bold green]✓ {msg}[/bold green]")
+        console.print("[dim]Restart your terminal or run '. $PROFILE' to use 'gs'.[/dim]")
+    else:
+        console.print(f"[bold red]✗ {msg}[/bold red]")
 
 @app.command()
 def resolve():

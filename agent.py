@@ -224,8 +224,10 @@ from google import genai
 from google.genai import types
 from google.genai.errors import ServerError, ClientError
 from config import get_global_api_key,get_selected_model, get_repo_root
-
+import warnings
+warnings.filterwarnings("ignore", message=".*Direct use of automatic function calling.*")
 load_dotenv()
+
 
 class CommandExplanation(BaseModel):
     command: str = Field(description="The command analyzed")
@@ -346,7 +348,7 @@ def analyze_and_plan(user_query: str, git_state: dict, secrets_found: list) -> G
     """
 
     # Low-latency model list: tries fast Flash first, then Flash-Lite if congested
-    candidate_models = ["gemini-3.8-flash", "gemini-2.5-flash-lite"]
+    candidate_models = ["gemini-3.8-flash"]
     last_error = None
 
     for model_name in candidate_models:

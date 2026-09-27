@@ -165,9 +165,15 @@ def set_global_api_key(key: str):
     model = current.get("model", "gemini-3.8-flash")
     save_config(api_key=key, storage_dir=storage_dir, model=model)
 
+DEFAULT_MODEL = "gemini-3.8-flash"
+SUPPORTED_MODELS = [
+    "gemini-3.5-flash",
+    "gemini-3.5-pro",
+]
+
 def get_selected_model() -> str:
-    """Returns the user's configured model or defaults to gemini-3.8-flash."""
-    return get_config().get("model", "gemini-3.8-flash")
+    """Returns the user's configured model or defaults to gemini-3.5-flash."""
+    return get_config().get("model", DEFAULT_MODEL)
 
 def get_repo_root() -> Path | None:
     """Finds the root directory of the active repository dynamically."""
