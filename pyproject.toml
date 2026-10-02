@@ -9,6 +9,8 @@ description = "Autonomous Pre-Flight Blast-Radius Analyzer, Secret Quarantine & 
 authors = [{ name = "Git-Sentry Team" }]
 readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
+license-files = ["LICENSE"]
 dependencies = [
     "typer>=0.9.0",
     "rich>=13.0.0",
@@ -22,3 +24,4 @@ git-sentry = "cli:app"
 
 [tool.setuptools]
 py-modules = ["config", "context", "scanner", "snapshot", "hooks", "resolver", "agent", "cli"]
+
